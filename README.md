@@ -19,4 +19,4 @@ Simple run:
 
 Justs acess [How do I create a bot?](https://core.telegram.org/bots#3-how-do-i-create-a-bot) in Telegram Documentation and follow steps. When you receive your TOKEN, just fill in TELEGRAM_TOKEN environment variable in Docker.
 
-    $ docker run -d -e "TELEGRAM_TOKEN=**$YOUR_TELEGRAM_TOKEN**" --restart unless-stopped --name rpi-telegram-bot rpi-telegram-bot
+    $ docker run -d -e "TELEGRAM_TOKEN=$YOUR_TELEGRAM_TOKEN" --restart unless-stopped --name rpi-telegram-bot rpi-telegram-bot
