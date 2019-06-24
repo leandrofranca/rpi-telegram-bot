@@ -9,6 +9,7 @@ verify_ssl = true
 pylint = "*"
 autopep8 = "*"
 python-telegram-bot = "*"
+requests = "*"
 
 [requires]
 python_version = "3.7"

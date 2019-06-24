@@ -20,6 +20,7 @@ bot.
 import json
 import logging
 
+import requests
 from telegram.ext import (BaseFilter, CommandHandler, Filters, MessageHandler,
                           Updater)
 
@@ -42,9 +43,9 @@ class FilterSender(BaseFilter):
 
 # Define a few command handlers. These usually take the two arguments bot and
 # update. Error handlers also receive the raised TelegramError object in error.
-def start(bot, update):
-    """Send a message when the command /start is issued."""
-    update.message.reply_text('Hi!')
+# def start(bot, update):
+#     """Send a message when the command /start is issued."""
+#     update.message.reply_text('Hi!')
 
 
 def help(bot, update):
@@ -57,14 +58,34 @@ def echo(bot, update):
     update.message.reply_text(update.message.text)
 
 
-def callback_alarm(bot, job):
-    bot.send_message(chat_id=job.context, text='BEEP')
-    logger.info('BEEP')
+def callback_status(bot, job):
+    result = checkRpi()
+    if result['status'] == 'ok':
+        dump = json.dumps(result, indent=2)
+        bot.send_message(chat_id=job.context, text=dump)
 
 
-def start_timer(bot, update, job_queue):
-    bot.send_message(chat_id=update.message.chat_id, text='Beeping in 10 seconds...')
-    job_queue.run_once(callback_alarm, 10, context=update.message.chat_id)
+def start(bot, update, job_queue):
+    bot.send_message(chat_id=update.message.chat_id, text='Monitoring health...')
+    job_queue.run_repeating(callback_status, 10, context=update.message.chat_id)
+    job_queue.enabled = True
+
+
+def stop(bot, update, job_queue):
+    bot.send_message(chat_id=update.message.chat_id, text='Stop monitoring...')
+    job_queue.enabled = False
+    for job in job_queue.jobs():
+        job.schedule_removal()
+
+
+def checkRpi():
+    response = requests.get("http://192.168.31.40:8085")
+    return json.loads(response.text)
+
+
+def status(bot, update):
+    dump = json.dumps(checkRpi(), indent=2)
+    bot.send_message(chat_id=update.message.chat_id, text=dump)
 
 
 def error(bot, update, error):
@@ -84,7 +105,9 @@ def main():
     # dp.add_handler(CommandHandler("start", start))
     # dp.add_handler(CommandHandler("help", help))
 
-    dp.add_handler(CommandHandler("run", start_timer, pass_job_queue=True))
+    dp.add_handler(CommandHandler("start", start, pass_job_queue=True))
+    dp.add_handler(CommandHandler("stop", stop, pass_job_queue=True))
+    dp.add_handler(CommandHandler("status", status))
 
     # on noncommand i.e message - echo the message on Telegram
     # dp.add_handler(MessageHandler(Filters.text, echo))
