@@ -17,10 +17,11 @@ Press Ctrl-C on the command line or send a signal to the process to stop the
 bot.
 """
 
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, BaseFilter
-import logging
 import json
+import logging
 
+from telegram.ext import (BaseFilter, CommandHandler, Filters, MessageHandler,
+                          Updater)
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -45,35 +46,33 @@ def start(bot, update):
     """Send a message when the command /start is issued."""
     update.message.reply_text('Hi!')
 
+
 def help(bot, update):
     """Send a message when the command /help is issued."""
     update.message.reply_text('Help!')
+
 
 def echo(bot, update):
     """Echo the user message."""
     update.message.reply_text(update.message.text)
 
+
 def callback_alarm(bot, job):
     bot.send_message(chat_id=job.context, text='BEEP')
+    logger.info('BEEP')
+
 
 def start_timer(bot, update, job_queue):
-    bot.send_message(chat_id=update.message.chat_id,
-                     text='Setting a timer for each 1 minute!')
+    bot.send_message(chat_id=update.message.chat_id, text='Beeping in 10 seconds...')
+    job_queue.run_once(callback_alarm, 10, context=update.message.chat_id)
 
-    job_queue.run_repeating(callback_alarm, 60, context=update.message.chat_id)
-
-def stop_timer(bot, update, job_queue):
-    bot.send_message(chat_id=update.message.chat_id,
-                     text='Stopping a timer!')
-
-    job_queue.stop()
 
 def error(bot, update, error):
     """Log Errors caused by Updates."""
     logger.warning('Update "%s" caused error "%s"', update, error)
 
-def main():
 
+def main():
     """Start the bot."""
     # Create the EventHandler and pass it your bot's token.
     updater = Updater(CONFIGURATION["telegram_token"])
@@ -85,15 +84,13 @@ def main():
     # dp.add_handler(CommandHandler("start", start))
     # dp.add_handler(CommandHandler("help", help))
 
-    dp.add_handler(CommandHandler("start", start_timer, pass_job_queue=True))
-    dp.add_handler(CommandHandler("stop", stop_timer, pass_job_queue=True))
+    dp.add_handler(CommandHandler("run", start_timer, pass_job_queue=True))
 
     # on noncommand i.e message - echo the message on Telegram
     # dp.add_handler(MessageHandler(Filters.text, echo))
 
     # Filter messages
-    fs = FilterSender()
-    dp.add_handler(MessageHandler(fs & Filters.text, echo))
+    dp.add_handler(MessageHandler(FilterSender() & Filters.text, echo))
 
     # log all errors
     dp.add_error_handler(error)
