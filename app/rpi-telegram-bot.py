@@ -67,7 +67,7 @@ def callback_status(bot, job):
 
 def start(bot, update, job_queue):
     bot.send_message(chat_id=update.message.chat_id, text='Monitoring health...')
-    job_queue.run_repeating(callback_status, 10, context=update.message.chat_id)
+    job_queue.run_repeating(callback_status, 60, context=update.message.chat_id)
     job_queue.enabled = True
 
 
