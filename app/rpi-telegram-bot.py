@@ -60,7 +60,7 @@ def echo(bot, update):
 
 def callback_status(bot, job):
     result = checkRpi()
-    if result['status'] == 'ok':
+    if result['status'] != 'ok':
         dump = json.dumps(result, indent=2)
         bot.send_message(chat_id=job.context, text=dump)
 
