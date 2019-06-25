@@ -66,14 +66,19 @@ def callback_status(bot, job):
 
 
 def start(bot, update, job_queue):
-    bot.send_message(chat_id=update.message.chat_id, text='Monitoring health...')
+    bot.send_message(chat_id=update.message.chat_id, text='Health check is ON...')
+    cleanup_queue(job_queue)
     job_queue.run_repeating(callback_status, 60, context=update.message.chat_id)
     job_queue.enabled = True
 
 
 def stop(bot, update, job_queue):
-    bot.send_message(chat_id=update.message.chat_id, text='Stop monitoring...')
+    bot.send_message(chat_id=update.message.chat_id, text='Health check is OFF...')
     job_queue.enabled = False
+    cleanup_queue(job_queue)
+
+
+def cleanup_queue(job_queue):
     for job in job_queue.jobs():
         job.schedule_removal()
 
@@ -113,7 +118,8 @@ def main():
     # dp.add_handler(MessageHandler(Filters.text, echo))
 
     # Filter messages
-    dp.add_handler(MessageHandler(FilterSender() & Filters.text, echo))
+    fs = FilterSender()
+    dp.add_handler(MessageHandler(fs & Filters.text, echo))
 
     # log all errors
     dp.add_error_handler(error)
