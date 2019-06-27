@@ -3,7 +3,9 @@
 cat > config.json <<EOF
 {
   "telegram_token": "$TELEGRAM_TOKEN",
-  "authorized_chat_ids": $AUTHORIZED_CHAT_IDS
+  "authorized_chat_ids": [
+    $AUTHORIZED_CHAT_IDS
+  ]
 }
 EOF
 

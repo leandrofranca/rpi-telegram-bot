@@ -38,7 +38,7 @@ with open('config.json') as config_file:
 class FilterSender(BaseFilter):
 
     def filter(self, message):
-        return not CONFIGURATION["authorized_chat_ids"] or message.chat_id in CONFIGURATION["authorized_chat_ids"]
+        return not CONFIGURATION["authorized_chat_ids"] or message.chat_id in list(CONFIGURATION["authorized_chat_ids"])
 
 
 # Define a few command handlers. These usually take the two arguments bot and
@@ -110,15 +110,17 @@ def main():
     # dp.add_handler(CommandHandler("start", start))
     # dp.add_handler(CommandHandler("help", help))
 
-    dp.add_handler(CommandHandler("start", start, pass_job_queue=True))
-    dp.add_handler(CommandHandler("stop", stop, pass_job_queue=True))
-    dp.add_handler(CommandHandler("status", status))
+    # Filter
+    fs = FilterSender()
+
+    dp.add_handler(CommandHandler("start", start, filters=fs, pass_job_queue=True))
+    dp.add_handler(CommandHandler("stop", stop, filters=fs, pass_job_queue=True))
+    dp.add_handler(CommandHandler("status", status, filters=fs))
 
     # on noncommand i.e message - echo the message on Telegram
     # dp.add_handler(MessageHandler(Filters.text, echo))
 
     # Filter messages
-    fs = FilterSender()
     dp.add_handler(MessageHandler(fs & Filters.text, echo))
 
     # log all errors
